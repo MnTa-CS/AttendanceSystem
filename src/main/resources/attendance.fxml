@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="attendance.AttendanceController"
+      spacing="0" style="-fx-background-color: #1a1a2e;">
+
+    <!-- Header -->
+    <HBox style="-fx-background-color: #16213e; -fx-padding: 20 30; -fx-alignment: center-left; -fx-spacing: 12;">
+        <Label text="📋" style="-fx-font-size: 28px;"/>
+        <VBox spacing="2">
+            <Label text="Smart Attendance System"
+                   style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #e2e8f0;"/>
+            <Label text="COMP1402 — Object Oriented Programming"
+                   style="-fx-font-size: 11px; -fx-text-fill: #718096;"/>
+        </VBox>
+    </HBox>
+
+    <!-- Body -->
+    <HBox spacing="0" VBox.vgrow="ALWAYS">
+
+        <!-- Left Panel: Input Form -->
+        <VBox spacing="16" style="-fx-background-color: #16213e; -fx-padding: 24; -fx-min-width: 280; -fx-max-width: 280;">
+
+            <Label text="Log Attendance"
+                   style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #a0aec0; -fx-padding: 0 0 4 0;"/>
+
+            <!-- Name -->
+            <VBox spacing="6">
+                <Label text="Student Name" style="-fx-text-fill: #cbd5e0; -fx-font-size: 12px;"/>
+                <TextField fx:id="nameField"
+                           promptText="e.g. Budi Santoso"
+                           style="-fx-background-color: #0f3460; -fx-text-fill: #e2e8f0;
+                                  -fx-prompt-text-fill: #4a5568; -fx-border-color: #2d3748;
+                                  -fx-border-radius: 6; -fx-background-radius: 6;
+                                  -fx-padding: 8 12; -fx-font-size: 13px;"/>
+            </VBox>
+
+            <!-- Student ID -->
+            <VBox spacing="6">
+                <Label text="Student ID" style="-fx-text-fill: #cbd5e0; -fx-font-size: 12px;"/>
+                <TextField fx:id="idField"
+                           promptText="e.g. 2024001"
+                           style="-fx-background-color: #0f3460; -fx-text-fill: #e2e8f0;
+                                  -fx-prompt-text-fill: #4a5568; -fx-border-color: #2d3748;
+                                  -fx-border-radius: 6; -fx-background-radius: 6;
+                                  -fx-padding: 8 12; -fx-font-size: 13px;"/>
+            </VBox>
+
+            <!-- Status Radio -->
+            <VBox spacing="8">
+                <Label text="Status" style="-fx-text-fill: #cbd5e0; -fx-font-size: 12px;"/>
+                <HBox spacing="16">
+                    <RadioButton fx:id="presentRadio" text="Present"
+                                 style="-fx-text-fill: #68d391;">
+                        <toggleGroup><ToggleGroup fx:id="statusGroup"/></toggleGroup>
+                    </RadioButton>
+                    <RadioButton fx:id="absentRadio" text="Absent"
+                                 toggleGroup="$statusGroup"
+                                 style="-fx-text-fill: #fc8181;"/>
+                </HBox>
+            </VBox>
+
+            <!-- Log Button -->
+            <Button fx:id="logButton" text="Log Attendance →"
+                    onAction="#handleLogAttendance"
+                    maxWidth="Infinity"
+                    style="-fx-background-color: #0ea5e9; -fx-text-fill: white;
+                           -fx-font-size: 13px; -fx-font-weight: bold;
+                           -fx-padding: 10 16; -fx-background-radius: 8;
+                           -fx-cursor: hand;"/>
+
+            <Separator style="-fx-background-color: #2d3748;"/>
+
+            <!-- Secondary Buttons -->
+            <Button fx:id="refreshButton" text="↻  Refresh Records"
+                    onAction="#handleRefresh"
+                    maxWidth="Infinity"
+                    style="-fx-background-color: #2d3748; -fx-text-fill: #a0aec0;
+                           -fx-font-size: 12px; -fx-padding: 8 16;
+                           -fx-background-radius: 8; -fx-cursor: hand;"/>
+
+            <Button fx:id="clearButton" text="🗑  Clear All Records"
+                    onAction="#handleClear"
+                    maxWidth="Infinity"
+                    style="-fx-background-color: #2d3748; -fx-text-fill: #fc8181;
+                           -fx-font-size: 12px; -fx-padding: 8 16;
+                           -fx-background-radius: 8; -fx-cursor: hand;"/>
+
+            <VBox VBox.vgrow="ALWAYS"/>
+
+            <!-- Status label -->
+            <Label fx:id="statusLabel" text="" wrapText="true"
+                   style="-fx-font-size: 12px; -fx-text-fill: #68d391;"/>
+
+            <!-- File path -->
+            <Label fx:id="filePathLabel" text=""
+                   wrapText="true"
+                   style="-fx-font-size: 10px; -fx-text-fill: #4a5568;"/>
+
+        </VBox>
+
+        <!-- Right Panel: Table -->
+        <VBox spacing="12" style="-fx-padding: 24;" VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS">
+
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <Label text="Attendance Records"
+                       style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #a0aec0;"/>
+                <Label fx:id="totalLabel" text="Total: 0"
+                       style="-fx-font-size: 12px; -fx-text-fill: #718096;"/>
+            </HBox>
+
+            <TableView fx:id="attendanceTable" VBox.vgrow="ALWAYS"
+                       style="-fx-background-color: #16213e; -fx-border-color: #2d3748;
+                              -fx-border-radius: 8; -fx-background-radius: 8;">
+                <columns>
+                    <TableColumn fx:id="nameColumn" text="Student Name" prefWidth="180"/>
+                    <TableColumn fx:id="idColumn" text="Student ID" prefWidth="110"/>
+                    <TableColumn fx:id="statusColumn" text="Status" prefWidth="90"/>
+                    <TableColumn fx:id="timestampColumn" text="Timestamp" prefWidth="170"/>
+                </columns>
+                <placeholder>
+                    <Label text="No records yet. Log your first attendance above."
+                           style="-fx-text-fill: #4a5568; -fx-font-size: 13px;"/>
+                </placeholder>
+            </TableView>
+
+        </VBox>
+    </HBox>
+
+</VBox>
