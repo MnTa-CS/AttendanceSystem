@@ -1,0 +1,2 @@
+natives/*.dll filter=lfs diff=lfs merge=lfs -text
+javafx/** filter=lfs diff=lfs merge=lfs -text
