@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="attendance.AttendanceController"
+      spacing="0" style="-fx-background-color: #1a1a2e;">
+
+    <!-- Header -->
+    <HBox style="-fx-background-color: #16213e; -fx-padding: 14 28; -fx-alignment: center-left; -fx-spacing: 12;">
+        <Label text="Smart Attendance System"
+               style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #e2e8f0;"/>
+        <Label text="COMP1402 - Object Oriented Programming"
+               style="-fx-font-size: 11px; -fx-text-fill: #718096; -fx-padding: 4 0 0 8;"/>
+    </HBox>
+
+    <TabPane VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE"
+             style="-fx-background-color: #1a1a2e; -fx-tab-min-width: 130px;">
+
+        <!-- ═══════════════════ TAB 1 - Attendance ═══════════════════ -->
+        <Tab text="Attendance">
+            <HBox spacing="0" VBox.vgrow="ALWAYS">
+                <VBox spacing="13" style="-fx-background-color: #16213e; -fx-padding: 20; -fx-min-width: 260; -fx-max-width: 260;">
+                    <Label text="Log Attendance" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #a0aec0;"/>
+
+                    <VBox spacing="4">
+                        <Label text="Student Name" style="-fx-text-fill: #cbd5e0; -fx-font-size: 11px;"/>
+                        <TextField fx:id="nameField" promptText="e.g. Budi Santoso"
+                                   style="-fx-background-color: #0f3460; -fx-text-fill: #e2e8f0; -fx-prompt-text-fill: #4a5568;
+                                          -fx-border-color: #2d3748; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 7 10;"/>
+                    </VBox>
+                    <VBox spacing="4">
+                        <Label text="Student ID" style="-fx-text-fill: #cbd5e0; -fx-font-size: 11px;"/>
+                        <TextField fx:id="idField" promptText="e.g. 2024001"
+                                   style="-fx-background-color: #0f3460; -fx-text-fill: #e2e8f0; -fx-prompt-text-fill: #4a5568;
+                                          -fx-border-color: #2d3748; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 7 10;"/>
+                    </VBox>
+                    <VBox spacing="4">
+                        <Label text="Subject" style="-fx-text-fill: #cbd5e0; -fx-font-size: 11px;"/>
+                        <ComboBox fx:id="subjectCombo" maxWidth="Infinity" promptText="Select subject..."
+                                  style="-fx-background-color: #0f3460; -fx-text-fill: #e2e8f0;"/>
+                    </VBox>
+                    <VBox spacing="5">
+                        <Label text="Status" style="-fx-text-fill: #cbd5e0; -fx-font-size: 11px;"/>
+                        <HBox spacing="16">
+                            <RadioButton fx:id="presentRadio" text="Present" style="-fx-text-fill: #68d391;">
+                                <toggleGroup><ToggleGroup fx:id="statusGroup"/></toggleGroup>
+                            </RadioButton>
+                            <RadioButton fx:id="absentRadio" text="Absent" toggleGroup="$statusGroup" style="-fx-text-fill: #fc8181;"/>
+                        </HBox>
+                    </VBox>
+
+                    <Button text="Log Attendance" onAction="#handleLogAttendance" maxWidth="Infinity"
+                            style="-fx-background-color: #0ea5e9; -fx-text-fill: white; -fx-font-weight: bold;
+                                   -fx-padding: 9 14; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                    <Separator style="-fx-background-color: #2d3748;"/>
+                    <Button text="Export Report (HTML to PDF)" onAction="#handleExportReport" maxWidth="Infinity"
+                            style="-fx-background-color: #1a6e3e; -fx-text-fill: #68d391; -fx-font-size: 12px;
+                                   -fx-padding: 8 14; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                    <Button text="Refresh" onAction="#handleRefresh" maxWidth="Infinity"
+                            style="-fx-background-color: #2d3748; -fx-text-fill: #a0aec0; -fx-font-size: 12px;
+                                   -fx-padding: 8 14; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                    <Button text="Clear All Records" onAction="#handleClearAll" maxWidth="Infinity"
+                            style="-fx-background-color: #2d3748; -fx-text-fill: #fc8181; -fx-font-size: 12px;
+                                   -fx-padding: 8 14; -fx-background-radius: 8; -fx-cursor: hand;"/>
+
+                    <VBox VBox.vgrow="ALWAYS"/>
+                    <Label fx:id="statusLabel"   text="" wrapText="true" style="-fx-font-size: 11px;"/>
+                    <Label fx:id="filePathLabel" text="" wrapText="true" style="-fx-font-size: 10px; -fx-text-fill: #4a5568;"/>
+                </VBox>
+
+                <VBox spacing="10" style="-fx-padding: 20;" VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS">
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <TextField fx:id="searchField" promptText="Search by name or ID..." prefWidth="260"
+                                   style="-fx-background-color: #16213e; -fx-text-fill: #e2e8f0; -fx-prompt-text-fill: #4a5568;
+                                          -fx-border-color: #2d3748; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 7 10;"/>
+                        <Label fx:id="totalLabel" text="Showing: 0" style="-fx-font-size: 12px; -fx-text-fill: #718096;"/>
+                    </HBox>
+                    <TableView fx:id="attendanceTable" VBox.vgrow="ALWAYS"
+                               style="-fx-background-color: #16213e; -fx-border-color: #2d3748; -fx-border-radius: 8;">
+                        <columns>
+                            <TableColumn fx:id="nameColumn"      text="Student Name" prefWidth="155"/>
+                            <TableColumn fx:id="idColumn"        text="Student ID"   prefWidth="100"/>
+                            <TableColumn fx:id="subjectColumn"   text="Subject"      prefWidth="120"/>
+                            <TableColumn fx:id="statusColumn"    text="Status"       prefWidth="85"/>
+                            <TableColumn fx:id="timestampColumn" text="Timestamp"    prefWidth="160"/>
+                        </columns>
+                        <placeholder><Label text="No records yet." style="-fx-text-fill: #4a5568;"/></placeholder>
+                    </TableView>
+                </VBox>
+            </HBox>
+        </Tab>
+
+        <!-- ═══════════════════ TAB 2 - Students ═══════════════════ -->
+        <Tab text="Students">
+            <HBox spacing="0">
+                <VBox spacing="13" style="-fx-background-color: #16213e; -fx-padding: 20; -fx-min-width: 260; -fx-max-width: 260;">
+                    <Label text="Add / Edit Student" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #a0aec0;"/>
+                    <VBox spacing="4">
+                        <Label text="Full Name" style="-fx-text-fill: #cbd5e0; -fx-font-size: 11px;"/>
+                        <TextField fx:id="stuNameField" promptText="e.g. Rina Putri"
+                                   style="-fx-background-color: #0f3460; -fx-text-fill: #e2e8f0; -fx-prompt-text-fill: #4a5568;
+                                          -fx-border-color: #2d3748; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 7 10;"/>
+                    </VBox>
+                    <VBox spacing="4">
+                        <Label text="Student ID" style="-fx-text-fill: #cbd5e0; -fx-font-size: 11px;"/>
+                        <TextField fx:id="stuIdField" promptText="e.g. 2024002"
+                                   style="-fx-background-color: #0f3460; -fx-text-fill: #e2e8f0; -fx-prompt-text-fill: #4a5568;
+                                          -fx-border-color: #2d3748; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 7 10;"/>
+                    </VBox>
+                    <VBox spacing="4">
+                        <Label text="Subjects (comma-separated)" style="-fx-text-fill: #cbd5e0; -fx-font-size: 11px;"/>
+                        <TextField fx:id="stuSubjectField" promptText="e.g. COMP1402, MATH1101"
+                                   style="-fx-background-color: #0f3460; -fx-text-fill: #e2e8f0; -fx-prompt-text-fill: #4a5568;
+                                          -fx-border-color: #2d3748; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 7 10;"/>
+                    </VBox>
+                    <Button text="Save Student" onAction="#handleAddStudent" maxWidth="Infinity"
+                            style="-fx-background-color: #0ea5e9; -fx-text-fill: white; -fx-font-weight: bold;
+                                   -fx-padding: 9 14; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                    <Button text="Delete Selected" onAction="#handleDeleteStudent" maxWidth="Infinity"
+                            style="-fx-background-color: #2d3748; -fx-text-fill: #fc8181; -fx-font-size: 12px;
+                                   -fx-padding: 8 14; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                    <VBox VBox.vgrow="ALWAYS"/>
+                    <Label fx:id="stuStatusLabel" text="" wrapText="true" style="-fx-font-size: 11px;"/>
+                </VBox>
+
+                <VBox spacing="10" style="-fx-padding: 20;" VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS">
+                    <Label text="Student Roster" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #a0aec0;"/>
+                    <TableView fx:id="studentTable" VBox.vgrow="ALWAYS" onMouseClicked="#handleStudentTableClick"
+                               style="-fx-background-color: #16213e; -fx-border-color: #2d3748; -fx-border-radius: 8;">
+                        <columns>
+                            <TableColumn fx:id="stuIdColumn"       text="Student ID" prefWidth="120"/>
+                            <TableColumn fx:id="stuNameColumn"     text="Name"       prefWidth="180"/>
+                            <TableColumn fx:id="stuSubjectsColumn" text="Subjects"   prefWidth="300"/>
+                        </columns>
+                        <placeholder><Label text="No students yet." style="-fx-text-fill: #4a5568;"/></placeholder>
+                    </TableView>
+                </VBox>
+            </HBox>
+        </Tab>
+
+        <!-- ═══════════════════ TAB 3 - Camera ═══════════════════ -->
+        <Tab text="Camera Check-in">
+            <HBox spacing="0" VBox.vgrow="ALWAYS">
+
+                <!-- Left control panel -->
+                <VBox spacing="12" style="-fx-background-color: #16213e; -fx-padding: 20; -fx-min-width: 270; -fx-max-width: 270;">
+
+                    <!-- Camera controls -->
+                    <Label text="Camera" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #a0aec0;"/>
+                    <HBox spacing="8">
+                        <Button fx:id="startCamButton" text="Start" onAction="#handleStartCamera"
+                                maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                                style="-fx-background-color: #0ea5e9; -fx-text-fill: white; -fx-font-weight: bold;
+                                       -fx-padding: 8 12; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                        <Button fx:id="stopCamButton" text="Stop" onAction="#handleStopCamera"
+                                maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                                style="-fx-background-color: #2d3748; -fx-text-fill: #a0aec0;
+                                       -fx-padding: 8 12; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                    </HBox>
+
+                    <Separator style="-fx-background-color: #2d3748;"/>
+
+                    <!-- Enroll section -->
+                    <Label text="Enroll Student Face" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #a0aec0;"/>
+                    <VBox spacing="4">
+                        <Label text="Select Student" style="-fx-text-fill: #cbd5e0; -fx-font-size: 11px;"/>
+                        <ComboBox fx:id="enrollStudentCombo" maxWidth="Infinity" promptText="Choose student..."
+                                  style="-fx-background-color: #0f3460; -fx-text-fill: #e2e8f0;"/>
+                    </VBox>
+                    <Button fx:id="enrollButton" text="Enroll Face (10 samples)" onAction="#handleEnroll"
+                            maxWidth="Infinity"
+                            style="-fx-background-color: #6d3fc0; -fx-text-fill: white; -fx-font-weight: bold;
+                                   -fx-padding: 8 12; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                    <ProgressBar fx:id="enrollProgress" maxWidth="Infinity" progress="0"
+                                 style="-fx-accent: #6d3fc0;"/>
+                    <Label fx:id="enrollStatusLabel" text="Look at the camera to enroll."
+                           wrapText="true" style="-fx-font-size: 11px; -fx-text-fill: #718096;"/>
+
+                    <Separator style="-fx-background-color: #2d3748;"/>
+
+                    <!-- Recognize section -->
+                    <Label text="Auto Check-in" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #a0aec0;"/>
+                    <VBox spacing="4">
+                        <Label text="Subject" style="-fx-text-fill: #cbd5e0; -fx-font-size: 11px;"/>
+                        <ComboBox fx:id="recogSubjectCombo" maxWidth="Infinity" promptText="Select subject..."
+                                  style="-fx-background-color: #0f3460; -fx-text-fill: #e2e8f0;"/>
+                    </VBox>
+                    <Button fx:id="recognizeButton" text="Recognize and Log Attendance"
+                            onAction="#handleRecognize" maxWidth="Infinity"
+                            style="-fx-background-color: #1a6e3e; -fx-text-fill: #68d391; -fx-font-weight: bold;
+                                   -fx-padding: 8 12; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                    <Label fx:id="recognizedLabel" text="" wrapText="true"
+                           style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #27ae60;"/>
+
+                    <VBox VBox.vgrow="ALWAYS"/>
+                    <Label fx:id="faceCountLabel" text="Faces: 0" style="-fx-font-size: 12px; -fx-text-fill: #718096;"/>
+                    <Label fx:id="camStatusLabel" text="Camera not started." wrapText="true"
+                           style="-fx-font-size: 11px; -fx-text-fill: #718096;"/>
+                </VBox>
+
+                <!-- Camera feed -->
+                <VBox spacing="8" style="-fx-padding: 20; -fx-alignment: center;"
+                      VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS">
+                    <Label text="Live Camera Feed"
+                           style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #a0aec0;"/>
+                    <ImageView fx:id="cameraView" fitWidth="620" fitHeight="460"
+                               preserveRatio="true"
+                               style="-fx-border-color: #2d3748; -fx-border-radius: 8;"/>
+                </VBox>
+            </HBox>
+        </Tab>
+
+    </TabPane>
+</VBox>

@@ -1,0 +1,88 @@
+/* ============================================================
+   Smart Attendance System - JavaFX Stylesheet
+   ============================================================ */
+
+.root {
+    -fx-font-family: "Segoe UI", sans-serif;
+    -fx-background-color: #1a1a2e;
+}
+
+/* Table header */
+.table-view .column-header-background {
+    -fx-background-color: #0f3460;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #a0aec0;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+/* Table rows */
+.table-view .table-row-cell {
+    -fx-background-color: #1a1a2e;
+    -fx-border-color: transparent transparent #2d3748 transparent;
+}
+
+.table-view .table-row-cell:odd {
+    -fx-background-color: #16213e;
+}
+
+.table-view .table-row-cell:hover {
+    -fx-background-color: #0f3460;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: #0ea5e9;
+}
+
+.table-view .table-cell {
+    -fx-text-fill: #e2e8f0;
+    -fx-font-size: 13px;
+    -fx-padding: 6 8;
+}
+
+/* Scrollbar */
+.scroll-bar:vertical .track,
+.scroll-bar:horizontal .track {
+    -fx-background-color: #16213e;
+}
+
+.scroll-bar:vertical .thumb,
+.scroll-bar:horizontal .thumb {
+    -fx-background-color: #2d3748;
+    -fx-background-radius: 4;
+}
+
+/* Radio buttons */
+.radio-button .radio {
+    -fx-border-color: #4a5568;
+    -fx-background-color: #0f3460;
+}
+
+.radio-button:selected .radio {
+    -fx-border-color: #0ea5e9;
+}
+
+.radio-button:selected .dot {
+    -fx-background-color: #0ea5e9;
+}
+
+/* Buttons hover effects */
+#logButton:hover {
+    -fx-background-color: #38bdf8;
+}
+
+#refreshButton:hover {
+    -fx-background-color: #4a5568;
+}
+
+#clearButton:hover {
+    -fx-background-color: #3d2020;
+}
+
+/* Text field focus */
+.text-field:focused {
+    -fx-border-color: #0ea5e9;
+    -fx-effect: dropshadow(gaussian, rgba(14,165,233,0.3), 6, 0, 0, 0);
+}
