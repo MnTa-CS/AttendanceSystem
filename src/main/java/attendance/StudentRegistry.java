@@ -2,92 +2,89 @@ package attendance;
 
 import java.io.*;
 import java.nio.file.*;
-import java.util.*;
+import java.util.ArrayList;
 
-/**
- * Manages the student roster.
- * Demonstrates: Java Collections (HashMap), File I/O, modularity.
- */
 public class StudentRegistry {
 
-    private static final String DATA_DIR  = "data";
-    private static final String FILE_NAME = "students.csv";
-    private static final String CSV_HEADER = "StudentID,Name,Subjects";
+    private static final String FILE_PATH = "data/students.csv";
+    private static final String HEADER    = "StudentID,Name,Subjects";
 
-    private final Path filePath;
-    private final Map<String, Student> students; // key = studentId
+    private ArrayList<Student> students;
 
     public StudentRegistry() {
-        this.filePath = Paths.get(DATA_DIR, FILE_NAME);
-        this.students = new LinkedHashMap<>();
-        initFile();
-        loadAll();
-    }
-
-    private void initFile() {
+        students = new ArrayList<Student>();
         try {
-            Files.createDirectories(filePath.getParent());
-            if (!Files.exists(filePath)) {
-                Files.writeString(filePath, CSV_HEADER + System.lineSeparator());
+            Files.createDirectories(Paths.get("data"));
+            if (!Files.exists(Paths.get(FILE_PATH))) {
+                Files.writeString(Paths.get(FILE_PATH), HEADER + System.lineSeparator());
             }
+            loadFromFile();
         } catch (IOException e) {
-            throw new RuntimeException("Failed to initialize students file: " + e.getMessage(), e);
+            System.out.println("Could not load students: " + e.getMessage());
         }
     }
 
-    private void loadAll() {
-        try {
-            List<String> lines = Files.readAllLines(filePath);
-            for (int i = 1; i < lines.size(); i++) {
-                String line = lines.get(i).trim();
-                if (line.isEmpty()) continue;
-                try {
-                    Student s = Student.fromCsvLine(line);
-                    students.put(s.getStudentId(), s);
-                } catch (IllegalArgumentException e) {
-                    System.err.println("Skipping malformed student line " + (i + 1) + ": " + e.getMessage());
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("Could not load students: " + e.getMessage());
-        }
-    }
-
-    /** Add or update a student, then persist. */
     public void save(Student student) throws IOException {
-        students.put(student.getStudentId(), student);
-        persist();
-    }
 
-    /** Remove a student by ID, then persist. */
-    public void remove(String studentId) throws IOException {
-        students.remove(studentId.toUpperCase());
-        persist();
-    }
-
-    /** Rewrite the entire file from the in-memory map. */
-    private void persist() throws IOException {
-        try (BufferedWriter w = Files.newBufferedWriter(filePath)) {
-            w.write(CSV_HEADER);
-            w.newLine();
-            for (Student s : students.values()) {
-                w.write(s.toCsvLine());
-                w.newLine();
+        for (int i = 0; i < students.size(); i++) {
+            if (students.get(i).getStudentId().equals(student.getStudentId())) {
+                students.remove(i);
+                break;
             }
         }
+        students.add(student);
+        writeToFile();
+    }
+
+    public void remove(String studentId) throws IOException {
+        for (int i = 0; i < students.size(); i++) {
+            if (students.get(i).getStudentId().equals(studentId.toUpperCase())) {
+                students.remove(i);
+                break;
+            }
+        }
+        writeToFile();
     }
 
     public Student getById(String studentId) {
-        return students.get(studentId == null ? null : studentId.toUpperCase());
+        for (Student s : students) {
+            if (s.getStudentId().equals(studentId.toUpperCase())) {
+                return s;
+            }
+        }
+        return null;
     }
 
     public boolean exists(String studentId) {
-        return students.containsKey(studentId == null ? null : studentId.toUpperCase());
+        return getById(studentId) != null;
     }
 
-    public Collection<Student> getAll() {
-        return Collections.unmodifiableCollection(students.values());
+    public ArrayList<Student> getAll() {
+        return students;
     }
 
-    public int size() { return students.size(); }
+    private void loadFromFile() throws IOException {
+        java.util.List<String> lines = Files.readAllLines(Paths.get(FILE_PATH));
+        for (int i = 1; i < lines.size(); i++) {
+            String line = lines.get(i).trim();
+            if (!line.isEmpty()) {
+                try {
+                    students.add(Student.fromCsvLine(line));
+                } catch (Exception e) {
+                    System.out.println("Skipping bad student line: " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    private void writeToFile() throws IOException {
+        BufferedWriter writer = Files.newBufferedWriter(Paths.get(FILE_PATH));
+        writer.write(HEADER);
+        writer.newLine();
+        for (Student s : students) {
+            writer.write(s.toCsvLine());
+            writer.newLine();
+        }
+        writer.close();
+    }
 }

@@ -1,70 +1,47 @@
 package attendance;
 
 import org.opencv.core.*;
-import org.opencv.imgproc.Imgproc;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 
 import java.io.*;
 import java.nio.file.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 
-/**
- * Face recognizer using histogram comparison (core OpenCV only).
- * Saves grayscale face samples per student, compares using correlation.
- *
- * Demonstrates: file I/O, Java Collections (HashMap, ArrayList),
- * external library usage, OOP encapsulation.
- */
 public class FaceRecognizer {
 
-    private static final String DATA_DIR   = "data/faces";
-    private static final String LABEL_FILE = "data/face_labels.csv";
+    private static final String FACES_DIR  = "data/faces";
+    private static final double THRESHOLD  = 0.82;
 
-    // Correlation threshold: 0.0 = no match, 1.0 = perfect match
-    // Values above this are considered a match
-    private static final double MATCH_THRESHOLD = 0.82;
-
-    // Maps studentId -> list of stored histogram Mats
-    private final Map<String, List<Mat>> faceHistograms;
-    private boolean trained = false;
+    private HashMap<String, ArrayList<Mat>> faceHistograms;
+    private boolean trained;
 
     public FaceRecognizer() {
-        faceHistograms = new HashMap<>();
+        faceHistograms = new HashMap<String, ArrayList<Mat>>();
+        trained = false;
         try {
-            Files.createDirectories(Paths.get(DATA_DIR));
-            Files.createDirectories(Paths.get("data"));
+            Files.createDirectories(Paths.get(FACES_DIR));
         } catch (IOException e) {
-            System.err.println("Could not create face directories: " + e.getMessage());
+            System.out.println("Could not create faces folder: " + e.getMessage());
         }
-        loadSamples();
+        train();
     }
 
-    // ── Enrollment ────────────────────────────────────────────────────────────
-
-    /**
-     * Saves a grayscale face sample for a student.
-     * Call multiple times (e.g. 10x) to collect training samples.
-     */
     public void saveSample(Mat face, String studentId, int sampleIndex) throws IOException {
-        Path dir = Paths.get(DATA_DIR, studentId);
+        Path dir = Paths.get(FACES_DIR, studentId);
         Files.createDirectories(dir);
 
         Mat resized = new Mat();
         Imgproc.resize(face, resized, new Size(100, 100));
-
-        Path out = dir.resolve("sample_" + sampleIndex + ".png");
-        Imgcodecs.imwrite(out.toString(), resized);
+        Imgcodecs.imwrite(dir.resolve("sample_" + sampleIndex + ".png").toString(), resized);
         resized.release();
     }
 
-    /**
-     * Loads all saved samples from disk and builds histograms.
-     * Call after finishing enrollment.
-     */
     public void train() {
         faceHistograms.clear();
 
-        File dataDir = new File(DATA_DIR);
+        File dataDir = new File(FACES_DIR);
         if (!dataDir.exists()) return;
 
         File[] studentDirs = dataDir.listFiles(File::isDirectory);
@@ -72,17 +49,17 @@ public class FaceRecognizer {
 
         for (File studentDir : studentDirs) {
             String studentId = studentDir.getName();
-            List<Mat> histograms = new ArrayList<>();
+            ArrayList<Mat> histograms = new ArrayList<Mat>();
 
             File[] samples = studentDir.listFiles(f -> f.getName().endsWith(".png"));
             if (samples == null) continue;
 
             for (File sample : samples) {
                 Mat img = Imgcodecs.imread(sample.getAbsolutePath(), Imgcodecs.IMREAD_GRAYSCALE);
-                if (img.empty()) continue;
-                Mat hist = computeHistogram(img);
-                histograms.add(hist);
-                img.release();
+                if (!img.empty()) {
+                    histograms.add(computeHistogram(img));
+                    img.release();
+                }
             }
 
             if (!histograms.isEmpty()) {
@@ -91,17 +68,8 @@ public class FaceRecognizer {
         }
 
         trained = !faceHistograms.isEmpty();
-        saveLabelFile();
     }
 
-    // ── Recognition ──────────────────────────────────────────────────────────
-
-    /**
-     * Predicts who the face belongs to by comparing histograms.
-     *
-     * @param face grayscale face Mat
-     * @return studentId if recognized, null if unknown
-     */
     public String predict(Mat face) {
         if (!trained || face.empty()) return null;
 
@@ -110,18 +78,16 @@ public class FaceRecognizer {
         Mat queryHist = computeHistogram(resized);
         resized.release();
 
-        String bestMatch    = null;
-        double bestScore    = -1.0;
+        String bestMatch = null;
+        double bestScore = -1.0;
 
-        for (Map.Entry<String, List<Mat>> entry : faceHistograms.entrySet()) {
-            String studentId = entry.getKey();
-            double avgScore  = 0.0;
-
-            for (Mat storedHist : entry.getValue()) {
-                // HISTCMP_CORREL: higher = better match (range -1 to 1)
-                avgScore += Imgproc.compareHist(queryHist, storedHist, Imgproc.HISTCMP_CORREL);
+        for (String studentId : faceHistograms.keySet()) {
+            ArrayList<Mat> histograms = faceHistograms.get(studentId);
+            double total = 0;
+            for (Mat stored : histograms) {
+                total += Imgproc.compareHist(queryHist, stored, Imgproc.HISTCMP_CORREL);
             }
-            avgScore /= entry.getValue().size();
+            double avgScore = total / histograms.size();
 
             if (avgScore > bestScore) {
                 bestScore = avgScore;
@@ -131,52 +97,19 @@ public class FaceRecognizer {
 
         queryHist.release();
 
-        if (bestScore >= MATCH_THRESHOLD) return bestMatch;
-        return null; // not recognized
+        if (bestScore >= THRESHOLD) return bestMatch;
+        return null;
     }
 
-    // ── Histogram Helper ─────────────────────────────────────────────────────
-
     private Mat computeHistogram(Mat grayFace) {
-        Mat hist     = new Mat();
-        MatOfFloat ranges    = new MatOfFloat(0f, 256f);
-        MatOfInt   histSize  = new MatOfInt(256);
-        MatOfInt   channels  = new MatOfInt(0);
-
-        List<Mat> images = Collections.singletonList(grayFace);
+        Mat hist      = new Mat();
+        MatOfFloat ranges   = new MatOfFloat(0f, 256f);
+        MatOfInt   histSize = new MatOfInt(256);
+        MatOfInt   channels = new MatOfInt(0);
+        java.util.List<Mat> images = java.util.Collections.singletonList(grayFace);
         Imgproc.calcHist(images, channels, new Mat(), hist, histSize, ranges);
         Core.normalize(hist, hist, 0, 1, Core.NORM_MINMAX);
         return hist;
-    }
-
-    // ── Persistence ───────────────────────────────────────────────────────────
-
-    /** Reloads all face samples from disk (called on startup). */
-    private void loadSamples() {
-        train(); // train() already reads from disk
-    }
-
-    private void saveLabelFile() {
-        try (BufferedWriter w = Files.newBufferedWriter(Paths.get(LABEL_FILE))) {
-            for (String id : faceHistograms.keySet()) {
-                w.write(id);
-                w.newLine();
-            }
-        } catch (IOException e) {
-            System.err.println("Could not save label file: " + e.getMessage());
-        }
-    }
-
-    /** Deletes all saved samples for a student so they can re-enroll. */
-    public void deleteSamples(String studentId) throws IOException {
-        Path dir = Paths.get(DATA_DIR, studentId);
-        if (Files.exists(dir)) {
-            Files.walk(dir)
-                 .sorted(Comparator.reverseOrder())
-                 .map(Path::toFile)
-                 .forEach(File::delete);
-        }
-        faceHistograms.remove(studentId);
     }
 
     public boolean isTrained()           { return trained; }
